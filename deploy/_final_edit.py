@@ -18,20 +18,18 @@ def call(path, method="GET", body=None, timeout=400):
         return {"error": e.read().decode()[:200], "status": e.code}
 
 
-print("顺序生成片段1…")
+print("生成片段1…")
 a = call("/video", "POST", {"prompt": "海浪拍打礁石，日落"})
-print("片段1:", ("ok" if a.get("ok") else "FAIL"), (a.get("url") or "")[:60])
+print("片段1:", "ok" if a.get("ok") else "FAIL")
 time.sleep(3)
-print("顺序生成片段2…")
+print("生成片段2…")
 b = call("/video", "POST", {"prompt": "无人机飞越森林，晨雾"})
-print("片段2:", ("ok" if b.get("ok") else "FAIL"), (b.get("url") or "")[:60])
+print("片段2:", "ok" if b.get("ok") else "FAIL")
 
 urls = [a.get("url"), b.get("url")]
 if all(urls):
-    print("剪辑合成中（拼接+转场+字幕+调色）…")
-    out = call("/video/edit", "POST", {
-        "clips": urls, "subtitles": ["第一幕", "第二幕", "成片"], "grade": "cinematic",
-    }, timeout=600)
+    print("剪辑合成中…")
+    out = call("/video/edit", "POST", {"clips": urls, "subtitles": ["第一幕", "第二幕"], "grade": "warm"}, timeout=600)
     print("剪辑结果:", json.dumps(out, ensure_ascii=False)[:250])
 else:
-    print("有片段生成失败，跳过剪辑")
+    print("生成失败:", {k: v.get("error", "ok")[:80] for k, v in {"a": a, "b": b}.items()})

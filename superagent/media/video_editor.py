@@ -24,7 +24,7 @@ _GRADES = {
 def _run(cmd: list[str], timeout: int = 900) -> str:
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
     if r.returncode != 0:
-        raise SuperAgentError(f"ffmpeg 失败: {r.stderr.strip()[:400]}")
+        raise SuperAgentError(f"ffmpeg 失败: {r.stderr.strip()[-500:]}")
     return r.stdout
 
 
@@ -106,16 +106,19 @@ def compose(clip_urls: list[str], output: str | Path, subtitle_lines: list[str] 
     total = _duration(tmp)
 
     current = tmp
-    # 字幕
+    # 字幕（失败则跳过，不阻断主流程）
     if subtitle_lines:
-        srt_text = make_srt(subtitle_lines, total)
-        srt_path = out.with_suffix(".srt")
-        srt_path.write_text(srt_text, encoding="utf-8")
-        sub_out = out.with_name(out.stem + "_sub.mp4")
-        _run(["ffmpeg", "-y", "-i", str(current), "-vf",
-              f"subtitles='{srt_path.name}':force_style='FontName=Microsoft YaHei,FontSize=20'",
-              "-c:v", "libx264", "-crf", "23", "-c:a", "aac", str(sub_out)])
-        current = sub_out
+        try:
+            srt_text = make_srt(subtitle_lines, total)
+            srt_path = out.with_suffix(".srt")
+            srt_path.write_text(srt_text, encoding="utf-8")
+            sub_out = out.with_name(out.stem + "_sub.mp4")
+            _run(["ffmpeg", "-y", "-i", str(current), "-vf",
+                  f"subtitles='{srt_path.name}':force_style='FontName=Noto Sans CJK SC,FontSize=20'",
+                  "-c:v", "libx264", "-crf", "23", "-c:a", "aac", str(sub_out)])
+            current = sub_out
+        except SuperAgentError:
+            pass  # 字幕失败则跳过，继续调色
 
     # 调色
     eq = _GRADES.get(grade, "")

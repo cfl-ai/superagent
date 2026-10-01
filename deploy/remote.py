@@ -118,7 +118,7 @@ def deploy() -> int:
         print(err.strip()); return 1
 
     print("==> 构建镜像")
-    code, out, err = run(c, f"cd {APP_DIR} && docker build -t superagent:latest . 2>&1", timeout=900)
+    code, out, err = run(c, f"cd {APP_DIR} && docker build -t superagent:latest . 2>&1", timeout=1500)
     print((out or err)[-2500:])
     if code != 0:
         print("镜像构建失败"); return 1

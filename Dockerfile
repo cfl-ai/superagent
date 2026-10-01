@@ -7,7 +7,7 @@ COPY superagent ./superagent
 COPY config ./config
 COPY pyproject.toml README.md LICENSE ./
 
-# 安装 ffmpeg（视频剪辑管线）
+# 安装 ffmpeg（视频剪辑管线）。如需中文字幕，可追加 fonts-noto-cjk
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir ".[file]" && rm -rf /root/.cache
