@@ -119,7 +119,39 @@ curl -X POST http://127.0.0.1:8000/approve \
 curl -X POST http://127.0.0.1:8000/chat \
   -H "Content-Type: application/json" \
   -d '{"message":"你好"}'
+
+# 文件上传解析分析（base64 内容 + 可选 LLM 分析）
+curl -X POST http://127.0.0.1:8000/upload \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: <API_KEY>" \
+  -d '{"filename":"report.txt","content":"<base64>","analyze":true}'
 ```
+
+---
+
+## 对外访问（公网）
+
+服务默认 `0.0.0.0:8000` + **API Key 鉴权**（`.env` 中 `SUPERAGENT_API_KEY`，除 `/health` 外均需 `X-API-Key` 头）。
+
+公网访问需在**阿里云控制台安全组**放行端口：
+
+1. 阿里云控制台 → ECS → 实例 `47.109.30.40` → 安全组 → 配置规则 → 入方向
+2. 添加规则：协议 **TCP**、端口 **8000**、授权对象 `0.0.0.0/0`（或限制为你的 IP 更安全）
+
+放行后：
+```bash
+curl -H "X-API-Key: <API_KEY>" http://47.109.30.40:8000/health
+```
+
+> 安全提醒：该服务是「可执行代码 + 审批门控」的控制面，务必启用 API Key 鉴权，
+> 建议经 nginx 反代 + HTTPS 对外开放，而非直接裸暴露。
+
+---
+
+## Langfuse 可观测性（可选）
+
+在 `.env` 配置 `LANGFUSE_PUBLIC_KEY`（`pk-lf-...`）+ `LANGFUSE_SECRET_KEY`（`sk-lf-...`）后重启，
+每次任务与 LLM 调用自动上报 trace/generation。缺失任一密钥则自动禁用（不影响主流程）。
 
 ---
 

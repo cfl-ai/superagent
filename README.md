@@ -68,7 +68,22 @@ python -m unittest discover -s tests -v   # 19 个用例
 
 ### HTTP 服务
 
-`python -m superagent serve` 启动生产服务（`/health /ping /run /chat /pending /approve /audit`），
+`python -m superagent serve` 启动生产服务：
+
+| 端点 | 说明 |
+|------|------|
+| `GET /health` | 健康检查（免鉴权） |
+| `GET /ping` | LLM 连通性 |
+| `POST /run` | 执行任务 `{text, auto_approve?}` |
+| `POST /chat` | 对话 `{message}` |
+| `POST /upload` | 文件上传解析分析 `{filename, content(base64)|text, analyze?}`（支持 txt/md/json/csv/xlsx/docx） |
+| `GET /pending` | 待审批列表 |
+| `POST /approve` | 审批 `{id, decision, feedback?}` |
+| `GET /audit` | 审计日志 |
+
+**鉴权**：设置环境变量 `SUPERAGENT_API_KEY` 后，除 `/health` 外所有端点需携带
+`X-API-Key` 或 `Authorization: Bearer` 头。
+
 详见 [`deploy/README.md`](deploy/README.md)。
 
 ---
@@ -138,6 +153,9 @@ superagent/
 | `openai` | api.openai.com/v1 | gpt-4o-mini | `SUPERAGENT_LLM_API_KEY` / `OPENAI_API_KEY` |
 | `auto` | — | — | 有密钥走 OpenAI，否则回退 mock |
 | `mock` / `null` | — | — | 离线回显 / 静默（测试用） |
+
+**Langfuse 可观测性**（可选）：配置 `LANGFUSE_PUBLIC_KEY` + `LANGFUSE_SECRET_KEY`（`pk-lf-...` + `sk-lf-...` 配对），
+自动上报每次任务 trace 与每次 LLM 调用 generation。
 
 ```bash
 # 方式一：.env（已 gitignore）

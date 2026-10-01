@@ -21,3 +21,7 @@ projects/
 .venv/
 venv/
 .env
+
+# 构建产物与运行时清单
+*.tar.gz
+01_需求文档/
