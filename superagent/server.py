@@ -139,6 +139,10 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 return self._skills(body)
             if path == "/video/edit":
                 return self._video_edit(body)
+            if path == "/video/fight":
+                return self._video_fight(body)
+            if path == "/video/dewatermark":
+                return self._video_dewatermark(body)
             return self._send({"error": "not found"}, status=404)
 
         # ---- 业务 ----
@@ -329,6 +333,44 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                     subtitle_lines=body.get("subtitles"),
                     grade=body.get("grade", "warm"),
                     bgm_url=body.get("bgm"),
+                )
+                return self._send({"ok": True, "url": f"/media/{name}", "name": name})
+            except Exception as exc:  # noqa: BLE001
+                return self._send({"ok": False, "error": str(exc)}, status=502)
+
+        def _video_fight(self, body):
+            """打斗镜头生成：{style?: street|martial|military, description?} -> {url}"""
+            from superagent.media.fight import build_fight_prompt, generate_fight
+            style = body.get("style", "street")
+            desc = (body.get("description") or "").strip()
+            try:
+                url = generate_fight(style, desc)
+                runtime.audit.record(
+                    subject=runtime.config.security.default_role,
+                    action="video.fight.generate", level="S3", result="success", obj=style,
+                )
+                return self._send({"ok": True, "url": url, "prompt": build_fight_prompt(style, desc)})
+            except Exception as exc:  # noqa: BLE001
+                return self._send({"ok": False, "error": str(exc)}, status=502)
+
+        def _video_dewatermark(self, body):
+            """合规去水印（仅限自有生成素材）：{url, region?: [x,y,w,h]} -> {url}"""
+            media_url = (body.get("url") or "").strip()
+            if not media_url:
+                return self._send({"error": "url 不能为空"}, status=400)
+            region = body.get("region") or [10, 10, 200, 80]
+            if not (isinstance(region, list) and len(region) == 4):
+                return self._send({"error": "region 需为 [x,y,w,h]"}, status=400)
+            import uuid
+            from superagent.media.watermark import remove_watermark
+            media_dir = runtime.config.project_root / "data" / "media"
+            media_dir.mkdir(parents=True, exist_ok=True)
+            name = f"clean_{uuid.uuid4().hex[:10]}.mp4"
+            try:
+                remove_watermark(media_url, media_dir / name, tuple(int(v) for v in region))
+                runtime.audit.record(
+                    subject=runtime.config.security.default_role,
+                    action="watermark.remove.self", level="S3", result="success", obj=media_url[:80],
                 )
                 return self._send({"ok": True, "url": f"/media/{name}", "name": name})
             except Exception as exc:  # noqa: BLE001

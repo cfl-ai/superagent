@@ -107,6 +107,8 @@
   <div class="tools">
     <span class="tool" onclick="genImage()">🎨 生成图片</span>
     <span class="tool" onclick="genVideo()">🎬 生成视频</span>
+    <span class="tool" onclick="genFight()">🥊 打斗视频</span>
+    <span class="tool" onclick="dewatermark()">🧽 去水印</span>
     <span class="tool" onclick="document.getElementById('file').click()">📄 解析文件</span>
     <input type="file" id="file" style="display:none" onchange="uploadFile(this.files[0])">
     <span class="tool" onclick="runTask()">🚀 执行任务</span>
@@ -204,6 +206,31 @@ async function genVideo(){
   if(status===200&&data.url){
     h.querySelector('.bub').innerHTML=`<div class="tag">剧本/分镜已生成</div><div class="canvas"><video controls src="${data.url}"></video></div>`;
   }else{h.querySelector('.bub').textContent='❌ '+(data.error||data.raw||status)}
+}
+
+// 打斗视频
+async function genFight(){
+  const style=prompt('🥊 打斗风格：street(街头) / martial(武术) / military(军警)','martial');
+  if(!style)return;
+  const desc=prompt('打斗描述：','两名武术高手在擂台上切磋');
+  addMsg('me','🥊 生成打斗视频（'+style+'）：'+desc);
+  const h=addMsg('ai','',spin+' 生成中（约 1-3 分钟）…');
+  const{status,data}=await api('/video/fight','POST',{style,description:desc});
+  if(status===200&&data.url){
+    h.querySelector('.bub').innerHTML=`<div class="canvas"><video controls src="${data.url}"></video></div><div class="muted">${esc(data.prompt||'')}</div>`;
+  }else{h.querySelector('.bub').textContent='❌ '+(data.error||status)}
+}
+
+// 去水印
+async function dewatermark(){
+  const url=prompt('🧽 输入素材 URL（仅限自有生成素材）','');
+  if(!url)return;
+  addMsg('me','🧽 去水印');
+  const h=addMsg('ai','',spin+' 处理中…');
+  const{status,data}=await api('/video/dewatermark','POST',{url});
+  if(status===200&&data.url){
+    h.querySelector('.bub').innerHTML=`<div class="canvas"><video controls src="${data.url}"></video></div>`;
+  }else{h.querySelector('.bub').textContent='❌ '+(data.error||status)}
 }
 
 // 文件
