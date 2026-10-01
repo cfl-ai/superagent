@@ -109,6 +109,10 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 return self._send({"events": rows})
             if path == "/skills":
                 return self._send({"skills": runtime.skills.list()})
+            if path == "/orders":
+                return self._orders()
+            if path.startswith("/media/"):
+                return self._serve_media(path)
             return self._send({"error": "not found"}, status=404)
 
         # ---- POST ----
@@ -133,6 +137,8 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 return self._video(body)
             if path == "/skills":
                 return self._skills(body)
+            if path == "/video/edit":
+                return self._video_edit(body)
             return self._send({"error": "not found"}, status=404)
 
         # ---- 业务 ----
@@ -277,6 +283,56 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 ok = runtime.skills.remove(body.get("id", ""))
                 return self._send({"ok": ok})
             return self._send({"error": "未知 action"}, status=400)
+
+        def _orders(self):
+            """接单检索：{category?} -> {orders: [{title,url,category}]}"""
+            qs = parse_qs(urlparse(self.path).query)
+            category = qs.get("category", ["开发"])[0]
+            from superagent.layers.layer2_network import NetworkLayer
+            try:
+                orders = NetworkLayer().search_orders(category, max_results=10)
+                return self._send({"ok": True, "orders": orders})
+            except Exception as exc:  # noqa: BLE001
+                return self._send({"ok": False, "error": str(exc)}, status=502)
+
+        def _serve_media(self, path):
+            """服务 media 目录下的成片文件。"""
+            from pathlib import Path
+            name = path.split("/media/", 1)[-1]
+            if "/" in name or ".." in name:
+                return self._send({"error": "bad path"}, status=400)
+            media_dir = runtime.config.project_root / "data" / "media"
+            f = media_dir / name
+            if not f.exists():
+                return self._send({"error": "not found"}, status=404)
+            body = f.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "video/mp4")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def _video_edit(self, body):
+            """视频剪辑：{clips:[urls], subtitles?:[lines], grade?, bgm?} -> {url}"""
+            clips = body.get("clips") or []
+            if not clips or not isinstance(clips, list):
+                return self._send({"error": "clips 不能为空（视频 URL 列表）"}, status=400)
+            import uuid
+            from superagent.media.video_editor import compose
+            media_dir = runtime.config.project_root / "data" / "media"
+            media_dir.mkdir(parents=True, exist_ok=True)
+            name = f"composed_{uuid.uuid4().hex[:10]}.mp4"
+            try:
+                compose(
+                    clips,
+                    media_dir / name,
+                    subtitle_lines=body.get("subtitles"),
+                    grade=body.get("grade", "warm"),
+                    bgm_url=body.get("bgm"),
+                )
+                return self._send({"ok": True, "url": f"/media/{name}", "name": name})
+            except Exception as exc:  # noqa: BLE001
+                return self._send({"ok": False, "error": str(exc)}, status=502)
 
     return Handler
 

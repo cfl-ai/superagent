@@ -111,3 +111,25 @@ class NetworkLayer(Layer):
         if href.startswith("//"):
             href = "https:" + href
         return href if href.startswith("http") else None
+
+    def search_orders(self, category: str = "开发", max_results: int = 10) -> list[dict]:
+        """检索接单需求（外包/开发/设计/视频等），返回 [{title, url, category}]。"""
+        queries = [
+            f"{category} 外包 接单 需求 项目",
+            f"{category} 项目 外包 招标 2025",
+            f"freelance {category} project",
+        ]
+        seen = set()
+        results = []
+        for q in queries:
+            try:
+                for h in self.search(q, max_results=5):
+                    if h["url"] not in seen:
+                        seen.add(h["url"])
+                        h["category"] = category
+                        results.append(h)
+            except SuperAgentError:
+                continue
+            if len(results) >= max_results:
+                break
+        return results[:max_results]
