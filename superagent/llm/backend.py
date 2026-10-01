@@ -67,9 +67,18 @@ class OpenAIBackend(LLMBackend):
         try:
             with urllib.request.urlopen(req, timeout=self.config.timeout_s) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
-            return data["choices"][0]["message"]["content"]
+            content = data["choices"][0]["message"]["content"]
         except (urllib.error.URLError, KeyError, IndexError, json.JSONDecodeError) as exc:
             raise LLMBackendError(f"LLM 调用失败: {exc}") from exc
+
+        # Langfuse 追踪（best-effort，不影响主流程）
+        try:
+            from superagent.observability.langfuse import log_generation
+            usage = data.get("usage")
+            log_generation("llm.complete", self.config.model, messages[-1].get("content", ""), content, usage)
+        except Exception:  # noqa: BLE001
+            pass
+        return content
 
 
 class MockBackend(LLMBackend):

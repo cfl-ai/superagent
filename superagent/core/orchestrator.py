@@ -44,11 +44,18 @@ class Orchestrator:
         self.runtime.telemetry.log("info", "任务开始", task_id=ctx.task_id, input=user_input[:120])
         self.runtime.telemetry.metrics.incr("tasks")
 
+        # Langfuse 任务追踪（可观测性基座）
+        from superagent.observability import langfuse as lf
+        trace_id = lf.client().record_task("superagent.task", input_data=user_input[:200])
+        ctx.artifacts["trace_id"] = trace_id
+        trace_token = lf.set_trace(trace_id)
+
         # 1. 语言解析与规划
         plan_result = self.planning.run(ctx, self.runtime)
         if plan_result.get("await_confirmation"):
             # 简短输入：保持 PENDING_CONFIRM，等待用户确认方向
             self.runtime.telemetry.log("info", "简短输入，等待确认方向", task_id=ctx.task_id)
+            lf.reset_trace(trace_token)
             return {
                 "task_id": ctx.task_id,
                 "await_confirmation": True,
@@ -105,6 +112,7 @@ class Orchestrator:
         ctx.state.transition(TaskState.ARCHIVED)
 
         self.runtime.telemetry.log("info", "任务完成", task_id=ctx.task_id)
+        lf.reset_trace(trace_token)
         return {
             "task_id": ctx.task_id,
             "await_confirmation": False,

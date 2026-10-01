@@ -99,8 +99,14 @@ def deploy() -> int:
     print(out.strip() or err.strip())
 
     print("==> 写入 .env")
+    api_key = os.environ.get("SA_API_KEY", "")
+    lf_sk = os.environ.get("SA_LANGFUSE_SK", "")
+    lf_pk = os.environ.get("SA_LANGFUSE_PK", "")
     env_content = f"SUPERAGENT_LLM_PROVIDER={provider}\nDEEPSEEK_API_KEY={llm_key}\n"
-    # 通过 heredoc 写入（密钥不经命令行参数，避免出现在进程列表）
+    if api_key:
+        env_content += f"SUPERAGENT_API_KEY={api_key}\n"
+    if lf_pk and lf_sk:
+        env_content += f"LANGFUSE_PUBLIC_KEY={lf_pk}\nLANGFUSE_SECRET_KEY={lf_sk}\n"
     code, out, err = run(c, f"cat > {APP_DIR}/.env <<'EOF'\n{env_content}EOF\nchmod 600 {APP_DIR}/.env")
     if code != 0:
         print(err.strip()); return 1
@@ -116,7 +122,7 @@ def deploy() -> int:
         f"docker rm -f superagent 2>/dev/null; "
         f"docker run -d --name superagent --restart unless-stopped "
         f"--memory=512m --cpus=1 "
-        f"-p 127.0.0.1:{PORT}:8000 "
+        f"-p 0.0.0.0:{PORT}:8000 "
         f"--env-file {APP_DIR}/.env "
         f"-v {APP_DIR}/data:/app/data "
         f"-v {APP_DIR}/projects:/app/projects "
