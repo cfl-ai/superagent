@@ -7,6 +7,7 @@ from pathlib import Path
 from superagent.core.config import Config
 from superagent.core.events import EventBus
 from superagent.core.registry import ToolRegistry
+from superagent.core.skills import SkillRegistry
 from superagent.hitl.approval import ApprovalQueue
 from superagent.llm.backend import LLMBackend, build_backend
 from superagent.observability.telemetry import Telemetry
@@ -29,6 +30,7 @@ class Runtime:
     telemetry: Telemetry
     approvals: ApprovalQueue
     tools: ToolRegistry
+    skills: SkillRegistry
     llm: LLMBackend
     events: EventBus
     scorer: Scorer
@@ -58,6 +60,7 @@ def build_runtime(config: Config) -> Runtime:
         telemetry=telemetry,
         approvals=ApprovalQueue(config.approvals_path, timeout_s=config.hitl.timeout_s),
         tools=ToolRegistry(),
+        skills=SkillRegistry(),
         llm=build_backend(config.llm),
         events=EventBus(),
         scorer=Scorer(),

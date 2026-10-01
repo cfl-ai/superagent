@@ -3,279 +3,250 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SuperAgent · 智能体控制台</title>
+<title>SuperAgent · 智能体</title>
 <style>
   :root{
-    --bg:#0b1020; --bg2:#111832; --card:#151d38; --card2:#1a2342;
-    --border:#263154; --text:#e8edf7; --muted:#8b98b8;
-    --accent:#6366f1; --accent2:#8b5cf6; --teal:#14b8a6; --ok:#22c55e; --warn:#f59e0b; --err:#ef4444;
-    --radius:14px;
+    --bg:#0a0e1a; --side:#0f1526; --card:#151d33; --card2:#1a2340; --border:#263154;
+    --text:#e9eef8; --muted:#8b98b8; --accent:#5b6cff; --accent2:#9b5cff; --teal:#14b8a6;
+    --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --r:14px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{
-    background:radial-gradient(1200px 600px at 80% -10%, #1e2a5a 0%, transparent 60%),
-               radial-gradient(900px 500px at -10% 110%, #2a1650 0%, transparent 55%),
-               var(--bg);
-    color:var(--text); font-family:'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
-    min-height:100vh; display:flex;
-  }
-  /* 侧边栏 */
-  .side{
-    width:210px; min-height:100vh; background:rgba(17,24,50,.85); backdrop-filter:blur(10px);
-    border-right:1px solid var(--border); padding:20px 12px; position:sticky; top:0; display:flex; flex-direction:column; gap:4px;
-  }
-  .brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px;}
-  .brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:18px;}
-  .brand h1{font-size:15px;font-weight:700;letter-spacing:.02em}
-  .brand .sub{font-size:11px;color:var(--muted)}
-  .nav{display:flex;flex-direction:column;gap:3px}
-  .nav button{
-    display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:none;border-radius:10px;
-    background:transparent;color:var(--muted);font-size:14px;cursor:pointer;text-align:left;transition:.15s;
-  }
-  .nav button:hover{background:rgba(99,102,241,.1);color:var(--text)}
-  .nav button.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:600;box-shadow:0 4px 14px rgba(99,102,241,.35)}
-  .side .foot{margin-top:auto;padding:12px 10px;font-size:11px;color:var(--muted);line-height:1.6}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;height:100vh;display:flex;overflow:hidden}
+  button{font-family:inherit}
+  /* 左栏：技能 */
+  .left{width:230px;background:var(--side);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+  .brand{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid var(--border)}
+  .brand .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:18px}
+  .brand h1{font-size:15px;font-weight:700}.brand .sub{font-size:11px;color:var(--muted)}
+  .sk-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+  .sk-head span{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.06em}
+  .sk-head button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px}
+  .skills{flex:1;overflow-y:auto;padding:4px 10px 16px}
+  .skill{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:.15s;margin-bottom:2px}
+  .skill:hover{background:rgba(91,108,255,.08)}
+  .skill.on{background:rgba(91,108,255,.14)}
+  .skill .ico{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:14px;background:var(--card2);flex-shrink:0}
+  .skill .t{font-size:13px}.skill .d{font-size:10px;color:var(--muted);line-height:1.3}
+  .skill .sw{margin-left:auto;width:30px;height:18px;border-radius:10px;background:var(--border);position:relative;flex-shrink:0}
+  .skill .sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#889;transition:.2s}
+  .skill.on .sw{background:var(--accent)}.skill.on .sw::after{left:15px;background:#fff}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--err);display:inline-block;margin-right:6px}
+  .dot.ok{background:var(--ok)}
   /* 主区 */
-  .main{flex:1;padding:26px 30px;max-width:960px;}
-  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
-  .dot{width:9px;height:9px;border-radius:50%;background:var(--err);box-shadow:0 0 8px var(--err)}
-  .dot.ok{background:var(--ok);box-shadow:0 0 8px var(--ok)}
-  .topbar .stat{font-size:12px;color:var(--muted)}
-  .topbar .spacer{flex:1}
-  .keywrap{display:flex;gap:8px}
-  .keywrap input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:9px;width:220px;font-family:monospace;font-size:12px}
-  .panel{display:none}
-  .panel.active{display:block;animation:fade .25s}
-  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
-  .card h2{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-  textarea,input[type=text]{width:100%;background:#0d1428;border:1px solid var(--border);color:var(--text);padding:11px 13px;border-radius:10px;font-size:14px;font-family:inherit;resize:vertical}
-  textarea:focus,input:focus{outline:none;border-color:var(--accent)}
-  .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:10px 18px;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px;transition:.15s}
-  .btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .top{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--side)}
+  .top .stat{font-size:12px;color:var(--muted)}
+  .spacer{flex:1}
+  .key{background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:8px;width:200px;font-family:monospace;font-size:12px}
+  .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:8px 15px;border-radius:9px;font-weight:600;cursor:pointer;font-size:13px;transition:.15s}
+  .btn:hover{filter:brightness(1.12)}
   .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
-  .btn.ok{background:var(--ok)} .btn.err{background:var(--err)}
-  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-  .row{display:flex;gap:10px;align-items:center;margin-top:12px}
-  .out{background:#0d1428;border:1px solid var(--border);border-radius:10px;padding:12px;min-height:54px;max-height:300px;overflow:auto;font-size:13px;white-space:pre-wrap;word-break:break-word;font-family:'Cascadia Code',Consolas,monospace;margin-top:12px}
-  .muted{color:var(--muted);font-size:12px}
+  .btn.ok{background:var(--ok)}.btn.err{background:var(--err)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.sm{padding:5px 10px;font-size:12px}
   /* 聊天 */
-  .chat{display:flex;flex-direction:column;gap:12px;min-height:300px;max-height:460px;overflow:auto;padding:6px}
-  .msg{display:flex;gap:10px;max-width:85%}
-  .msg.me{flex-direction:row-reverse;align-self:flex-end}
-  .bubble{padding:11px 14px;border-radius:14px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
-  .msg.me .bubble{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-bottom-right-radius:4px}
-  .msg.ai .bubble{background:var(--card);border:1px solid var(--border);border-bottom-left-radius:4px}
-  .avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:14px;flex-shrink:0}
-  .msg.me .avatar{background:var(--card);border:1px solid var(--border)}
-  .msg.ai .avatar{background:linear-gradient(135deg,var(--teal),var(--accent))}
-  /* 结果媒体 */
-  .media{margin-top:12px}
-  .media img{max-width:100%;border-radius:12px;border:1px solid var(--border)}
-  .media video{max-width:100%;border-radius:12px;border:1px solid var(--border)}
-  .tag{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(99,102,241,.15);color:#a5b4fc;margin:2px}
-  .item{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:12px;margin-bottom:9px}
-  .item .btns{display:flex;gap:7px;margin-top:10px}
-  .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite;vertical-align:-3px;margin-right:6px}
+  .chat{flex:1;overflow-y:auto;padding:24px 26px;display:flex;flex-direction:column;gap:16px}
+  .msg{display:flex;gap:11px;max-width:78%}
+  .msg.me{align-self:flex-end;flex-direction:row-reverse}
+  .av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:15px;flex-shrink:0}
+  .msg.ai .av{background:linear-gradient(135deg,var(--teal),var(--accent))}
+  .msg.me .av{background:var(--card2);border:1px solid var(--border)}
+  .bub{padding:12px 15px;border-radius:14px;font-size:14px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+  .msg.ai .bub{background:var(--card);border:1px solid var(--border);border-top-left-radius:4px}
+  .msg.me .bub{background:linear-gradient(135deg,var(--accent),var(--accent2));border-top-right-radius:4px}
+  .canvas{margin-top:10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+  .grid .cell{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--card2)}
+  .grid img{width:100%;display:block;aspect-ratio:1;object-fit:cover}
+  .grid .pick{position:absolute;bottom:6px;left:6px;right:6px}
+  .grid .picked{border:2px solid var(--ok)}
+  video{max-width:100%;border-radius:12px;border:1px solid var(--border);background:#000}
+  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;background:rgba(91,108,255,.16);color:#a5b4fc;margin:2px}
+  /* 输入区 */
+  .input{display:flex;gap:10px;align-items:flex-end;padding:14px 20px;border-top:1px solid var(--border);background:var(--side)}
+  .input textarea{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:12px;font-size:14px;resize:none;min-height:46px;max-height:160px;font-family:inherit}
+  .input textarea:focus{outline:none;border-color:var(--accent)}
+  .tools{display:flex;gap:6px;padding:0 20px 10px;flex-wrap:wrap}
+  .tool{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--border);padding:6px 11px;border-radius:18px;cursor:pointer;transition:.15s}
+  .tool:hover{color:var(--text);border-color:var(--accent)}
+  /* 弹窗 */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:50}
+  .modal.show{display:flex}
+  .modal .box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;width:400px;max-width:92vw}
+  .modal h3{font-size:15px;margin-bottom:14px}
+  .modal input,.modal textarea{width:100%;background:#0d1428;border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:9px;font-size:13px;margin-bottom:10px;font-family:inherit}
+  .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+  .spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite;vertical-align:-3px;margin-right:6px}
   @keyframes rot{to{transform:rotate(360deg)}}
-  .toast{position:fixed;bottom:22px;right:22px;background:var(--card2);border:1px solid var(--border);padding:12px 18px;border-radius:11px;font-size:13px;opacity:0;transition:.3s;pointer-events:none}
+  .empty{color:var(--muted);text-align:center;margin-top:40px;font-size:14px}
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--border);padding:12px 18px;border-radius:11px;font-size:13px;opacity:0;transition:.3s;z-index:60}
   .toast.show{opacity:1}
 </style>
 </head>
 <body>
-<div class="side">
+<div class="left">
   <div class="brand"><div class="logo">🤖</div><div><h1>SuperAgent</h1><div class="sub">智能体控制台</div></div></div>
-  <div class="nav">
-    <button class="active" data-tab="chat">💬 对话</button>
-    <button data-tab="task">🚀 任务</button>
-    <button data-tab="image">🎨 图片生成</button>
-    <button data-tab="video">🎬 视频生成</button>
-    <button data-tab="file">📄 文件解析</button>
-    <button data-tab="approve">✅ 审批</button>
-    <button data-tab="audit">📋 审计</button>
-  </div>
-  <div class="foot">SuperAgent · 生产级自主智能体<br>安全风控 · 审计溯源 · HITL 审批</div>
+  <div class="sk-head"><span>技能</span><button onclick="openAddSkill()">＋ 添加</button></div>
+  <div class="skills" id="skillList"></div>
 </div>
 
 <div class="main">
-  <div class="topbar">
-    <span class="dot" id="dot"></span>
-    <span class="stat" id="provider">连接中…</span>
-    <div class="spacer"></div>
-    <div class="keywrap">
-      <input type="password" id="apikey" placeholder="API Key">
-      <button class="btn ghost" onclick="saveKey()">保存</button>
-    </div>
+  <div class="top">
+    <span class="dot" id="dot"></span><span class="stat" id="provider">连接中…</span>
+    <span class="spacer"></span>
+    <span class="stat" id="selSkill">未选技能</span>
+    <input class="key" type="password" id="apikey" placeholder="API Key">
+    <button class="btn ghost sm" onclick="saveKey()">保存</button>
+    <button class="btn ghost sm" onclick="loadAudit()">审计</button>
   </div>
 
-  <!-- 对话 -->
-  <div class="panel active" id="panel-chat">
-    <div class="card"><h2>💬 对话</h2>
-      <div class="chat" id="chatBox"></div>
-      <div class="row">
-        <textarea id="chatMsg" placeholder="输入消息，Enter 发送，Shift+Enter 换行" style="min-height:56px"></textarea>
-      </div>
-      <div class="row"><button class="btn" id="chatBtn" onclick="chat()">发送</button>
-        <button class="btn ghost" onclick="clearChat()">清空</button></div>
-    </div>
+  <div class="chat" id="chatBox">
+    <div class="empty">👋 你好，我是 SuperAgent。输入消息开始对话，或点击下方工具生成图片/视频、解析文件。</div>
   </div>
 
-  <!-- 任务 -->
-  <div class="panel" id="panel-task">
-    <div class="card"><h2>🚀 执行任务</h2>
-      <textarea id="taskText" style="min-height:100px" placeholder="描述任务，例如：用Python写一个判断闰年的命令行工具"></textarea>
-      <div class="row"><label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px"><input type="checkbox" id="autoApprove" checked>自动放行（演示）</label></div>
-      <div class="row"><button class="btn" id="taskBtn" onclick="runTask()">执行</button></div>
-      <div class="out" id="taskOut"></div>
-    </div>
+  <div class="tools">
+    <span class="tool" onclick="genImage()">🎨 生成图片</span>
+    <span class="tool" onclick="genVideo()">🎬 生成视频</span>
+    <span class="tool" onclick="document.getElementById('file').click()">📄 解析文件</span>
+    <input type="file" id="file" style="display:none" onchange="uploadFile(this.files[0])">
+    <span class="tool" onclick="runTask()">🚀 执行任务</span>
   </div>
 
-  <!-- 图片 -->
-  <div class="panel" id="panel-image">
-    <div class="card"><h2>🎨 文生图 · 智谱 CogView</h2>
-      <textarea id="imgPrompt" style="min-height:80px" placeholder="描述要生成的画面，例如：一只橘猫在雪地里打滚，电影感光影"></textarea>
-      <div class="row"><button class="btn" id="imgBtn" onclick="genImage()">生成图片</button></div>
-      <div class="out" id="imgOut"></div>
-    </div>
-  </div>
-
-  <!-- 视频 -->
-  <div class="panel" id="panel-video">
-    <div class="card"><h2>🎬 文生视频 · 智谱 CogVideoX</h2>
-      <textarea id="vidPrompt" style="min-height:80px" placeholder="描述视频画面，例如：无人机航拍海岸线，海浪拍打礁石，日落"></textarea>
-      <div class="row"><button class="btn" id="vidBtn" onclick="genVideo()">生成视频</button>
-        <span class="muted">生成约需 1-3 分钟，请耐心等待</span></div>
-      <div class="out" id="vidOut"></div>
-    </div>
-  </div>
-
-  <!-- 文件 -->
-  <div class="panel" id="panel-file">
-    <div class="card"><h2>📄 文件上传解析分析</h2>
-      <input type="file" id="file" style="background:var(--card);border:1px dashed var(--border);border-radius:10px;padding:14px;width:100%;color:var(--muted)">
-      <div class="row"><label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px"><input type="checkbox" id="analyze" checked>用 LLM 分析内容</label></div>
-      <div class="row"><button class="btn" id="fileBtn" onclick="uploadFile()">上传并解析</button></div>
-      <div class="muted">支持 txt / md / json / csv / xlsx / docx</div>
-      <div class="out" id="fileOut"></div>
-    </div>
-  </div>
-
-  <!-- 审批 -->
-  <div class="panel" id="panel-approve">
-    <div class="card"><h2>✅ 待审批</h2>
-      <button class="btn ghost" onclick="loadPending()">刷新</button>
-      <div id="pendingList" style="margin-top:12px"></div>
-    </div>
-  </div>
-
-  <!-- 审计 -->
-  <div class="panel" id="panel-audit">
-    <div class="card"><h2>📋 审计日志</h2>
-      <button class="btn ghost" onclick="loadAudit()">刷新</button>
-      <div class="out" id="auditOut"></div>
-    </div>
+  <div class="input">
+    <textarea id="chatMsg" placeholder="输入消息，Enter 发送…（可描述要生成的图片/视频）"></textarea>
+    <button class="btn" id="chatBtn" onclick="chat()">发送</button>
   </div>
 </div>
 
+<!-- 添加技能弹窗 -->
+<div class="modal" id="addSkillModal">
+  <div class="box">
+    <h3>添加技能</h3>
+    <input id="skName" placeholder="技能名称，如：数据可视化">
+    <textarea id="skDesc" placeholder="技能描述" style="min-height:70px"></textarea>
+    <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px"><input type="checkbox" id="skForge"> 部署为可执行工具（LLM 生成代码并集成）</label>
+    <div class="row"><button class="btn ghost" onclick="closeAddSkill()">取消</button><button class="btn" onclick="addSkill()">添加</button></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
 const $=id=>document.getElementById(id);
 const key=()=>$('apikey').value||localStorage.getItem('sa_key')||'';
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
-function saveKey(){localStorage.setItem('sa_key',$('apikey').value.trim());toast('API Key 已保存')}
+function saveKey(){localStorage.setItem('sa_key',$('apikey').value.trim());toast('已保存')}
 $('apikey').value=localStorage.getItem('sa_key')||'';
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
 async function api(path,method='GET',body){
   const h={'Content-Type':'application/json'};const k=key();if(k)h['X-API-Key']=k;
   let r;try{r=await fetch(path,{method,headers:h,body:body?JSON.stringify(body):undefined})}
-  catch(e){return{status:0,data:{error:'网络错误：'+e.message}}}
-  const txt=await r.text();let d;try{d=JSON.parse(txt)}catch{d={raw:txt}}
+  catch(e){return{status:0,data:{error:'网络错误:'+e.message}}}
+  const t=await r.text();let d;try{d=JSON.parse(t)}catch{d={raw:t}}
   return{status:r.status,data:d};
 }
-function setBtn(btn,loading,txt){btn.disabled=loading;btn.innerHTML=loading?'<span class="spin"></span>'+txt:txt}
+const spin='<span class="spin"></span>';
 
-// 导航
-document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  $('panel-'+b.dataset.tab).classList.add('active');
-  if(b.dataset.tab==='approve')loadPending();
-  if(b.dataset.tab==='audit')loadAudit();
-});
-
-async function health(){try{const{data}=await api('/health');$('dot').classList.add('ok');$('provider').textContent=(data.provider||'')+' / '+(data.model||'')+' · 在线'}catch{$('dot').classList.remove('ok');$('provider').textContent='离线'}}
+// 技能
+let skills=[],selected=null;
+async function loadSkills(){
+  const{data}=await api('/skills');skills=data.skills||[];
+  const el=$('skillList');
+  el.innerHTML=skills.map(s=>`<div class="skill ${s.enabled?'on':''}" onclick="toggleSkill('${s.id}')">
+    <div class="ico">${icon(s.id)}</div>
+    <div><div class="t">${esc(s.name)}</div><div class="d">${esc(s.category)}</div></div>
+    <div class="sw"></div></div>`).join('');
+}
+function icon(id){return ({code:'💻',design:'🎨',video:'🎬',image_gen:'🖼️',video_gen:'🎞️',search:'🔍',file:'📄',sysops:'🖥️',toolforge:'🔧',chat:'💬'})[id]||'✨'}
+function toggleSkill(id){const s=skills.find(x=>x.id===id);s.enabled=!s.enabled;loadSkills();selected=s.enabled?id:(selected===id?null:selected);$('selSkill').textContent=s.enabled?('已选:'+s.name):'未选技能'}
 
 // 聊天
-const history=[];
-function addMsg(role,text,media){const box=$('chatBox');const d=document.createElement('div');d.className='msg '+(role==='me'?'me':'ai');
-  d.innerHTML=`<div class="avatar">${role==='me'?'🧑':'🤖'}</div><div class="bubble">${escapeHtml(text)}${media?'<div class="media">'+media+'</div>':''}</div>`;
-  box.appendChild(d);box.scrollTop=box.scrollHeight;}
-function escapeHtml(s){return String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
-function clearChat(){history.length=0;$('chatBox').innerHTML=''}
+function addMsg(role,text,html){
+  const box=$('chatBox');if(box.querySelector('.empty'))box.innerHTML='';
+  const d=document.createElement('div');d.className='msg '+(role==='me'?'me':'ai');
+  d.innerHTML=`<div class="av">${role==='me'?'🧑':'🤖'}</div><div class="bub">${text?esc(text):''}${html||''}</div>`;
+  box.appendChild(d);box.scrollTop=box.scrollHeight;return d;
+}
 async function chat(){
   const m=$('chatMsg').value.trim();if(!m)return;
-  addMsg('me',m);$('chatMsg').value='';setBtn($('chatBtn'),true,'发送中');
+  addMsg('me',m);$('chatMsg').value='';
+  const btn=$('chatBtn');btn.disabled=true;btn.innerHTML=spin+'…';
   const{status,data}=await api('/chat','POST',{message:m});
-  setBtn($('chatBtn'),false,'发送');
+  btn.disabled=false;btn.textContent='发送';
   addMsg('ai',status===200?data.reply:'❌ '+(data.error||data.raw||status));
 }
 $('chatMsg').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();chat()}});
 
-// 任务
-async function runTask(){
-  const text=$('taskText').value.trim();if(!text)return toast('请输入任务描述');
-  $('taskOut').textContent='执行中（可能较久）…';setBtn($('taskBtn'),true,'执行中');
-  const{status,data}=await api('/run','POST',{text,auto_approve:$('autoApprove').checked});
-  setBtn($('taskBtn'),false,'执行');
-  $('taskOut').textContent=JSON.stringify(data,null,2);
-}
-
-// 图片
+// 图片（多候选画布 + 择优）
 async function genImage(){
-  const prompt=$('imgPrompt').value.trim();if(!prompt)return toast('请输入图片描述');
-  $('imgOut').textContent='生成中（约 10-30 秒）…';setBtn($('imgBtn'),true,'生成中');
-  const{status,data}=await api('/image','POST',{prompt});
-  setBtn($('imgBtn'),false,'生成图片');
-  if(status===200&&data.url){$('imgOut').innerHTML=`<div class="media"><img src="${data.url}"></div><div class="muted">${data.url}</div>`}
-  else{$('imgOut').textContent='❌ '+(data.error||data.raw||status)}
+  const p=prompt('🎨 输入图片描述：','一只卡通猫在雪地里打滚，电影感光影');
+  if(!p)return;
+  const d=addMsg('me','🎨 生成图片：'+p);
+  const h=addMsg('ai','',spin+' 生成多套候选（约 20-40 秒）…');
+  const{status,data}=await api('/image','POST',{prompt:p,count:3});
+  if(status===200&&data.urls){
+    h.querySelector('.bub').innerHTML=`<b>多套候选（点击「选用」择优）：</b><div class="canvas"><div class="grid">${data.urls.map((u,i)=>`<div class="cell" id="img${i}"><img src="${u}"><button class="btn ok sm pick" onclick="pickImg(${i})">选用 ${i+1}</button></div>`).join('')}</div></div>`;
+  }else{h.querySelector('.bub').textContent='❌ '+(data.error||data.raw||status)}
+}
+function pickImg(i){
+  document.querySelectorAll('.grid .cell').forEach(c=>c.classList.remove('picked'));
+  const c=document.getElementById('img'+i);c.classList.add('picked');
+  toast('已选用第 '+(i+1)+' 张（人工择优）');
 }
 
-// 视频
+// 视频（剧本 + 成片画布）
 async function genVideo(){
-  const prompt=$('vidPrompt').value.trim();if(!prompt)return toast('请输入视频描述');
-  $('vidOut').textContent='提交任务中…';setBtn($('vidBtn'),true,'生成中(1-3分钟)');
-  const{status,data}=await api('/video','POST',{prompt});
-  setBtn($('vidBtn'),false,'生成视频');
-  if(status===200&&data.url){$('vidOut').innerHTML=`<div class="media"><video controls src="${data.url}"></video></div><div class="muted">${data.url}</div>`}
-  else{$('vidOut').textContent='❌ '+(data.error||data.raw||status)}
+  const p=prompt('🎬 输入视频描述：','无人机航拍海岸线，海浪拍打礁石，日落');
+  if(!p)return;
+  addMsg('me','🎬 生成视频：'+p);
+  const h=addMsg('ai','',spin+' 生成中（约 1-3 分钟，请耐心等待）…');
+  const{status,data}=await api('/video','POST',{prompt:p});
+  if(status===200&&data.url){
+    h.querySelector('.bub').innerHTML=`<div class="tag">剧本/分镜已生成</div><div class="canvas"><video controls src="${data.url}"></video></div>`;
+  }else{h.querySelector('.bub').textContent='❌ '+(data.error||data.raw||status)}
 }
 
 // 文件
 function toBase64(buf){let b='';const c=0x8000;for(let i=0;i<buf.length;i+=c)b+=String.fromCharCode.apply(null,buf.subarray(i,i+c));return btoa(b)}
-async function uploadFile(){
-  const f=$('file').files[0];if(!f)return toast('请先选择文件');
-  $('fileOut').textContent='解析中…';setBtn($('fileBtn'),true,'解析中');
+async function uploadFile(f){
+  if(!f)return;
+  addMsg('me','📄 上传：'+f.name);
+  const h=addMsg('ai','',spin+' 解析中…');
   const buf=new Uint8Array(await f.arrayBuffer());
-  const{status,data}=await api('/upload','POST',{filename:f.name,content:toBase64(buf),analyze:$('analyze').checked});
-  setBtn($('fileBtn'),false,'上传并解析');
-  $('fileOut').textContent=JSON.stringify(data,null,2);
+  const{status,data}=await api('/upload','POST',{filename:f.name,content:toBase64(buf),analyze:true});
+  if(status===200){h.querySelector('.bub').innerHTML=`<b>${esc(data.filename)}</b>（${data.chars} 字）<br><br>${esc(data.analysis||data.preview||'')}`}
+  else{h.querySelector('.bub').textContent='❌ '+(data.error||data.raw||status)}
 }
 
-// 审批
-async function loadPending(){
-  const{data}=await api('/pending');const list=data.pending||[];const el=$('pendingList');
-  if(!list.length){el.innerHTML='<div class="muted">无待审批请求</div>';return}
-  el.innerHTML=list.map(p=>`<div class="item"><b>${escapeHtml(p.action)}</b> <span class="muted">${escapeHtml(p.resource||'')}</span><div class="muted">${escapeHtml(p.reason||'')}</div><div class="btns"><button class="btn ok" onclick="decide('${p.id}','approve')">放行</button><button class="btn ghost" onclick="decide('${p.id}','revise')">修改</button><button class="btn err" onclick="decide('${p.id}','reject')">驳回</button></div></div>`).join('');
+// 任务
+async function runTask(){
+  const t=prompt('🚀 输入任务描述：','用Python写一个判断闰年的命令行工具');
+  if(!t)return;
+  addMsg('me','🚀 任务：'+t);
+  const h=addMsg('ai','',spin+' 执行中（可能较久）…');
+  const{status,data}=await api('/run','POST',{text:t,auto_approve:true});
+  h.querySelector('.bub').textContent=status===200?('✅ 完成：state='+data.result?.state+'\n'+JSON.stringify(data.result?.artifacts||{},null,2)):('❌ '+(data.error||status));
 }
-async function decide(id,decision){const fb=prompt(decision==='approve'?'备注(可选)':'请输入'+decision+'意见','');await api('/approve','POST',{id,decision,feedback:fb||''});loadPending()}
 
-// 审计
-async function loadAudit(){const{data}=await api('/audit?limit=40');const ev=data.events||[];$('auditOut').textContent=ev.map(e=>`${e.ts} [${e.level}] ${e.action} -> ${e.result}`).join('\n')||'无记录'}
+// 技能弹窗
+function openAddSkill(){$('addSkillModal').classList.add('show')}
+function closeAddSkill(){$('addSkillModal').classList.remove('show')}
+async function addSkill(){
+  const name=$('skName').value.trim();if(!name)return toast('请输入名称');
+  const{data}=await api('/skills','POST',{action:'add',name,description:$('skDesc').value.trim(),forge:$('skForge').checked});
+  closeAddSkill();$('skName').value='';$('skDesc').value='';
+  if(data.forge_error)toast('已添加，但部署失败：'+data.forge_error);else toast('技能已添加');
+  loadSkills();
+}
 
-health();
+async function loadAudit(){
+  const{data}=await api('/audit?limit=10');const ev=data.events||[];
+  const h=addMsg('ai','📋 最近审计：\n'+ev.map(e=>`${e.ts.slice(11,19)} [${e.level}] ${e.action}→${e.result}`).join('\n')||'无');
+}
+
+async function health(){try{const{data}=await api('/health');$('dot').classList.add('ok');$('provider').textContent=(data.provider||'')+' / '+(data.model||'')}catch{$('dot').classList.remove('ok')}}
+
+health();loadSkills();
 </script>
 </body>
 </html>

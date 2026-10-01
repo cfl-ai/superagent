@@ -107,6 +107,8 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 qs = parse_qs(urlparse(self.path).query)
                 rows = runtime.audit.query(limit=int(qs.get("limit", [50])[0]))
                 return self._send({"events": rows})
+            if path == "/skills":
+                return self._send({"skills": runtime.skills.list()})
             return self._send({"error": "not found"}, status=404)
 
         # ---- POST ----
@@ -129,6 +131,8 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 return self._image(body)
             if path == "/video":
                 return self._video(body)
+            if path == "/skills":
+                return self._skills(body)
             return self._send({"error": "not found"}, status=404)
 
         # ---- 业务 ----
@@ -224,14 +228,15 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
             return self._send(result)
 
         def _image(self, body):
-            """文生图（智谱 CogView）。{prompt} -> {url}"""
+            """文生图（智谱 CogView）。{prompt, count?} -> {urls[]}（多候选）"""
             prompt = (body.get("prompt") or "").strip()
             if not prompt:
                 return self._send({"error": "prompt 不能为空"}, status=400)
+            count = max(1, min(int(body.get("count", 1) or 1), 4))
             try:
                 from superagent.llm.backend import generate_image
-                url = generate_image(prompt)
-                return self._send({"ok": True, "url": url, "prompt": prompt})
+                urls = [generate_image(prompt) for _ in range(count)]
+                return self._send({"ok": True, "urls": urls, "prompt": prompt, "count": count})
             except Exception as exc:  # noqa: BLE001
                 return self._send({"ok": False, "error": str(exc)}, status=502)
 
@@ -246,6 +251,32 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 return self._send({"ok": True, "url": url, "prompt": prompt})
             except Exception as exc:  # noqa: BLE001
                 return self._send({"ok": False, "error": str(exc)}, status=502)
+
+        def _skills(self, body):
+            """技能管理：{action: add|toggle|remove, ...}"""
+            from dataclasses import asdict
+            action = body.get("action", "add")
+            if action == "add":
+                name = (body.get("name") or "").strip()
+                if not name:
+                    return self._send({"error": "name 不能为空"}, status=400)
+                desc = body.get("description", "")
+                skill = runtime.skills.add(name, desc, body.get("category", "自定义"))
+                if body.get("forge"):
+                    try:
+                        from superagent.core.toolforge import ToolForge
+                        ToolForge().forge(runtime, "custom_" + name.lower().replace(" ", "_")[:20], desc)
+                        skill.description = desc + "（已部署工具）"
+                    except Exception as exc:  # noqa: BLE001
+                        return self._send({"ok": True, "skill": asdict(skill), "forge_error": str(exc)})
+                return self._send({"ok": True, "skill": asdict(skill)})
+            if action == "toggle":
+                ok = runtime.skills.set_enabled(body.get("id", ""), bool(body.get("enabled", True)))
+                return self._send({"ok": ok})
+            if action == "remove":
+                ok = runtime.skills.remove(body.get("id", ""))
+                return self._send({"ok": ok})
+            return self._send({"error": "未知 action"}, status=400)
 
     return Handler
 
