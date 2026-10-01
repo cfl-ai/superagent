@@ -85,6 +85,7 @@ def deploy() -> int:
     c = connect()
     llm_key = env("SA_LLM_KEY")
     provider = env("SA_LLM_PROVIDER", "deepseek")
+    zhipu_key = os.environ.get("SA_ZHIPU_KEY", "")
 
     print("==> 上传部署包")
     if not TARBALL.exists():
@@ -104,6 +105,8 @@ def deploy() -> int:
     lf_pk = os.environ.get("SA_LANGFUSE_PK", "")
     lf_url = os.environ.get("SA_LANGFUSE_BASE_URL", "")
     env_content = f"SUPERAGENT_LLM_PROVIDER={provider}\nDEEPSEEK_API_KEY={llm_key}\n"
+    if zhipu_key:
+        env_content += f"ZHIPU_API_KEY={zhipu_key}\n"
     if api_key:
         env_content += f"SUPERAGENT_API_KEY={api_key}\n"
     if lf_pk and lf_sk:

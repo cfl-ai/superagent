@@ -123,6 +123,52 @@ def generate_image(prompt: str, *, model: str = "cogview-3-flash", size: str = "
         raise LLMBackendError(f"图像生成失败: {exc}") from exc
 
 
+def generate_video(prompt: str, *, model: str = "cogvideox-flash", poll_interval_s: float = 5.0, max_wait_s: float = 300.0) -> str:
+    """文本生成视频（智谱 CogVideoX，异步提交 + 轮询）。返回视频 URL。"""
+    import time
+    api_key = os.environ.get("ZHIPU_API_KEY", "")
+    if not api_key:
+        raise LLMBackendError("缺少 ZHIPU_API_KEY，无法生成视频")
+    base = "https://open.bigmodel.cn/api/paas/v4"
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
+
+    # 1. 提交任务
+    req = urllib.request.Request(
+        base + "/videos/generations",
+        data=json.dumps({"model": model, "prompt": prompt}).encode("utf-8"),
+        headers=headers, method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            submit = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, json.JSONDecodeError) as exc:
+        raise LLMBackendError(f"视频任务提交失败: {exc}") from exc
+    task_id = submit.get("id") or submit.get("task_id")
+    if not task_id:
+        raise LLMBackendError(f"视频任务提交无 id: {submit}")
+
+    # 2. 轮询结果
+    deadline = time.time() + max_wait_s
+    while time.time() < deadline:
+        time.sleep(poll_interval_s)
+        req = urllib.request.Request(base + f"/async-result/{task_id}", headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+        except (urllib.error.URLError, json.JSONDecodeError) as exc:
+            raise LLMBackendError(f"视频结果查询失败: {exc}") from exc
+        status = result.get("task_status") or result.get("status")
+        if status in ("SUCCESS", "SUCCEEDED"):
+            vr = result.get("video_result") or []
+            url = (vr[0].get("url") if vr else None) or result.get("video_url") or result.get("url")
+            if url:
+                return url
+            raise LLMBackendError(f"视频成功但无 URL: {result}")
+        if status in ("FAIL", "FAILED"):
+            raise LLMBackendError(f"视频生成失败: {result}")
+    raise LLMBackendError(f"视频生成超时（>{max_wait_s}s），任务 id={task_id}")
+
+
 def build_backend(config: LLMConfig) -> LLMBackend:
     provider = config.provider.lower()
     if provider in PROVIDER_PRESETS:

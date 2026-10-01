@@ -125,6 +125,10 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 return self._approve(body)
             if path == "/upload":
                 return self._upload(body)
+            if path == "/image":
+                return self._image(body)
+            if path == "/video":
+                return self._video(body)
             return self._send({"error": "not found"}, status=404)
 
         # ---- 业务 ----
@@ -218,6 +222,30 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 except Exception as exc:  # noqa: BLE001
                     result["analysis_error"] = str(exc)
             return self._send(result)
+
+        def _image(self, body):
+            """文生图（智谱 CogView）。{prompt} -> {url}"""
+            prompt = (body.get("prompt") or "").strip()
+            if not prompt:
+                return self._send({"error": "prompt 不能为空"}, status=400)
+            try:
+                from superagent.llm.backend import generate_image
+                url = generate_image(prompt)
+                return self._send({"ok": True, "url": url, "prompt": prompt})
+            except Exception as exc:  # noqa: BLE001
+                return self._send({"ok": False, "error": str(exc)}, status=502)
+
+        def _video(self, body):
+            """文生视频（智谱 CogVideoX，异步提交+轮询，耗时约 1-3 分钟）。{prompt} -> {url}"""
+            prompt = (body.get("prompt") or "").strip()
+            if not prompt:
+                return self._send({"error": "prompt 不能为空"}, status=400)
+            try:
+                from superagent.llm.backend import generate_video
+                url = generate_video(prompt)
+                return self._send({"ok": True, "url": url, "prompt": prompt})
+            except Exception as exc:  # noqa: BLE001
+                return self._send({"ok": False, "error": str(exc)}, status=502)
 
     return Handler
 
