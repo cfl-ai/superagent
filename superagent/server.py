@@ -143,6 +143,8 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 return self._video_fight(body)
             if path == "/video/dewatermark":
                 return self._video_dewatermark(body)
+            if path == "/video/compose":
+                return self._video_compose(body)
             return self._send({"error": "not found"}, status=404)
 
         # ---- 业务 ----
@@ -372,6 +374,22 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                     subject=runtime.config.security.default_role,
                     action="watermark.remove.self", level="S3", result="success", obj=media_url[:80],
                 )
+                return self._send({"ok": True, "url": f"/media/{name}", "name": name})
+            except Exception as exc:  # noqa: BLE001
+                return self._send({"ok": False, "error": str(exc)}, status=502)
+
+        def _video_compose(self, body):
+            """多场景片段合成成片：{scenes:[{type,description,view?,style?}], grade?} -> {url}"""
+            scenes = body.get("scenes") or []
+            if not scenes or not isinstance(scenes, list):
+                return self._send({"error": "scenes 不能为空"}, status=400)
+            import uuid
+            from superagent.media.video_production import compose_scenes
+            media_dir = runtime.config.project_root / "data" / "media"
+            media_dir.mkdir(parents=True, exist_ok=True)
+            name = f"film_{uuid.uuid4().hex[:10]}.mp4"
+            try:
+                compose_scenes(scenes, media_dir / name, grade=body.get("grade", "warm"))
                 return self._send({"ok": True, "url": f"/media/{name}", "name": name})
             except Exception as exc:  # noqa: BLE001
                 return self._send({"ok": False, "error": str(exc)}, status=502)

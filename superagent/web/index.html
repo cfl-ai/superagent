@@ -13,8 +13,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;height:100vh;display:flex;overflow:hidden}
   button{font-family:inherit}
-  /* 左栏：技能 */
-  .left{width:230px;background:var(--side);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+  .left{width:230px;background:var(--side);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:.25s}
   .brand{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid var(--border)}
   .brand .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:18px}
   .brand h1{font-size:15px;font-weight:700}.brand .sub{font-size:11px;color:var(--muted)}
@@ -30,23 +29,21 @@
   .skill .sw{margin-left:auto;width:30px;height:18px;border-radius:10px;background:var(--border);position:relative;flex-shrink:0}
   .skill .sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#889;transition:.2s}
   .skill.on .sw{background:var(--accent)}.skill.on .sw::after{left:15px;background:#fff}
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .top{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--side);flex-wrap:wrap}
   .dot{width:8px;height:8px;border-radius:50%;background:var(--err);display:inline-block;margin-right:6px}
   .dot.ok{background:var(--ok)}
-  /* 主区 */
-  .main{flex:1;display:flex;flex-direction:column;min-width:0}
-  .top{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--side)}
   .top .stat{font-size:12px;color:var(--muted)}
   .spacer{flex:1}
-  .key{background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:8px;width:200px;font-family:monospace;font-size:12px}
+  .key{background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:8px;width:170px;font-family:monospace;font-size:12px}
   .btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:8px 15px;border-radius:9px;font-weight:600;cursor:pointer;font-size:13px;transition:.15s}
   .btn:hover{filter:brightness(1.12)}
   .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
   .btn.ok{background:var(--ok)}.btn.err{background:var(--err)}
   .btn:disabled{opacity:.5;cursor:not-allowed}
   .btn.sm{padding:5px 10px;font-size:12px}
-  /* 聊天 */
-  .chat{flex:1;overflow-y:auto;padding:24px 26px;display:flex;flex-direction:column;gap:16px}
-  .msg{display:flex;gap:11px;max-width:78%}
+  .chat{flex:1;overflow-y:auto;padding:22px 24px;display:flex;flex-direction:column;gap:16px}
+  .msg{display:flex;gap:11px;max-width:80%}
   .msg.me{align-self:flex-end;flex-direction:row-reverse}
   .av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:15px;flex-shrink:0}
   .msg.ai .av{background:linear-gradient(135deg,var(--teal),var(--accent))}
@@ -55,36 +52,44 @@
   .msg.ai .bub{background:var(--card);border:1px solid var(--border);border-top-left-radius:4px}
   .msg.me .bub{background:linear-gradient(135deg,var(--accent),var(--accent2));border-top-right-radius:4px}
   .canvas{margin-top:10px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
   .grid .cell{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--card2)}
   .grid img{width:100%;display:block;aspect-ratio:1;object-fit:cover}
   .grid .pick{position:absolute;bottom:6px;left:6px;right:6px}
   .grid .picked{border:2px solid var(--ok)}
   video{max-width:100%;border-radius:12px;border:1px solid var(--border);background:#000}
   .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;background:rgba(91,108,255,.16);color:#a5b4fc;margin:2px}
-  /* 输入区 */
-  .input{display:flex;gap:10px;align-items:flex-end;padding:14px 20px;border-top:1px solid var(--border);background:var(--side)}
-  .input textarea{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:12px;font-size:14px;resize:none;min-height:46px;max-height:160px;font-family:inherit}
-  .input textarea:focus{outline:none;border-color:var(--accent)}
-  .tools{display:flex;gap:6px;padding:0 20px 10px;flex-wrap:wrap}
-  .tool{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--border);padding:6px 11px;border-radius:18px;cursor:pointer;transition:.15s}
+  .tools{display:flex;gap:6px;padding:0 16px 10px;flex-wrap:wrap}
+  .tool{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--border);padding:7px 12px;border-radius:18px;cursor:pointer;transition:.15s;user-select:none}
   .tool:hover{color:var(--text);border-color:var(--accent)}
-  /* 弹窗 */
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:50}
+  .input{display:flex;gap:10px;align-items:flex-end;padding:12px 16px;border-top:1px solid var(--border);background:var(--side)}
+  .input textarea{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:12px;font-size:14px;resize:none;min-height:46px;max-height:160px;font-family:inherit;line-height:1.5}
+  .input textarea:focus{outline:none;border-color:var(--accent)}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
   .modal.show{display:flex}
-  .modal .box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;width:400px;max-width:92vw}
+  .modal .box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;width:420px;max-width:94vw;max-height:86vh;overflow:auto}
   .modal h3{font-size:15px;margin-bottom:14px}
-  .modal input,.modal textarea{width:100%;background:#0d1428;border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:9px;font-size:13px;margin-bottom:10px;font-family:inherit}
-  .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+  .modal input,.modal textarea,.modal select{width:100%;background:#0d1428;border:1px solid var(--border);color:var(--text);padding:11px 12px;border-radius:9px;font-size:14px;margin-bottom:10px;font-family:inherit}
+  .modal select{appearance:none}
+  .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+  .modal label{font-size:12px;color:var(--muted);display:block;margin:4px 0 6px}
   .spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite;vertical-align:-3px;margin-right:6px}
   @keyframes rot{to{transform:rotate(360deg)}}
   .empty{color:var(--muted);text-align:center;margin-top:40px;font-size:14px}
   .toast{position:fixed;bottom:20px;right:20px;background:var(--card2);border:1px solid var(--border);padding:12px 18px;border-radius:11px;font-size:13px;opacity:0;transition:.3s;z-index:60}
   .toast.show{opacity:1}
+  /* 响应式 */
+  @media (max-width:760px){
+    .left{position:absolute;left:-240px;top:0;bottom:0;z-index:40;box-shadow:2px 0 20px rgba(0,0,0,.4)}
+    .left.open{left:0}
+    .chat{padding:16px 14px}
+    .msg{max-width:92%}
+    .key{width:120px}
+  }
 </style>
 </head>
 <body>
-<div class="left">
+<div class="left" id="sidebar">
   <div class="brand"><div class="logo">🤖</div><div><h1>SuperAgent</h1><div class="sub">智能体控制台</div></div></div>
   <div class="sk-head"><span>技能</span><button onclick="openAddSkill()">＋ 添加</button></div>
   <div class="skills" id="skillList"></div>
@@ -92,31 +97,53 @@
 
 <div class="main">
   <div class="top">
+    <button class="btn ghost sm" onclick="toggleSidebar()">☰</button>
     <span class="dot" id="dot"></span><span class="stat" id="provider">连接中…</span>
     <span class="spacer"></span>
-    <span class="stat" id="selSkill">未选技能</span>
     <input class="key" type="password" id="apikey" placeholder="API Key">
     <button class="btn ghost sm" onclick="saveKey()">保存</button>
     <button class="btn ghost sm" onclick="loadAudit()">审计</button>
   </div>
 
   <div class="chat" id="chatBox">
-    <div class="empty">👋 你好，我是 SuperAgent。输入消息开始对话，或点击下方工具生成图片/视频、解析文件。</div>
+    <div class="empty">👋 你好，我是 SuperAgent。输入消息开始对话，或点击下方工具生成图片/视频、合成多场景成片、解析文件。</div>
   </div>
 
   <div class="tools">
     <span class="tool" onclick="genImage()">🎨 生成图片</span>
     <span class="tool" onclick="genVideo()">🎬 生成视频</span>
-    <span class="tool" onclick="genFight()">🥊 打斗视频</span>
-    <span class="tool" onclick="dewatermark()">🧽 去水印</span>
+    <span class="tool" onclick="composeFilm()">🎞️ 多场景成片</span>
     <span class="tool" onclick="document.getElementById('file').click()">📄 解析文件</span>
     <input type="file" id="file" style="display:none" onchange="uploadFile(this.files[0])">
     <span class="tool" onclick="runTask()">🚀 执行任务</span>
   </div>
 
   <div class="input">
-    <textarea id="chatMsg" placeholder="输入消息，Enter 发送…（可描述要生成的图片/视频）"></textarea>
+    <textarea id="chatMsg" placeholder="输入消息，Enter 发送…"></textarea>
     <button class="btn" id="chatBtn" onclick="chat()">发送</button>
+  </div>
+</div>
+
+<!-- 通用输入模态框 -->
+<div class="modal" id="askModal">
+  <div class="box">
+    <h3 id="askTitle">输入</h3>
+    <input id="askInput" placeholder="">
+    <div class="row"><button class="btn ghost" onclick="askCancel()">取消</button><button class="btn" onclick="askOk()">确定</button></div>
+  </div>
+</div>
+
+<!-- 打斗/场景合成模态框 -->
+<div class="modal" id="filmModal">
+  <div class="box">
+    <h3>🎞️ 多场景成片（打斗可作为片段）</h3>
+    <label>场景描述（每行一个场景；打斗场景行首加「打斗:」前缀，可再选风格）</label>
+    <textarea id="filmScenes" style="min-height:120px" placeholder="打斗:两名高手在擂台切磋&#10;无人机航拍海岸线，日落&#10;打斗:军警制服歹徒"></textarea>
+    <label>打斗风格</label>
+    <select id="filmStyle"><option value="martial">武术</option><option value="street">街头格斗</option><option value="military">军警搏杀</option></select>
+    <label>调色</label>
+    <select id="filmGrade"><option value="warm">暖调</option><option value="cinematic">电影感</option><option value="vivid">鲜艳</option></select>
+    <div class="row"><button class="btn ghost" onclick="closeFilm()">取消</button><button class="btn" id="filmBtn" onclick="submitFilm()">生成成片</button></div>
   </div>
 </div>
 
@@ -124,9 +151,9 @@
 <div class="modal" id="addSkillModal">
   <div class="box">
     <h3>添加技能</h3>
-    <input id="skName" placeholder="技能名称，如：数据可视化">
-    <textarea id="skDesc" placeholder="技能描述" style="min-height:70px"></textarea>
-    <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px"><input type="checkbox" id="skForge"> 部署为可执行工具（LLM 生成代码并集成）</label>
+    <input id="skName" placeholder="技能名称">
+    <textarea id="skDesc" placeholder="技能描述" style="min-height:60px"></textarea>
+    <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="skForge" style="width:auto"> 部署为可执行工具</label>
     <div class="row"><button class="btn ghost" onclick="closeAddSkill()">取消</button><button class="btn" onclick="addSkill()">添加</button></div>
   </div>
 </div>
@@ -139,6 +166,7 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');set
 function saveKey(){localStorage.setItem('sa_key',$('apikey').value.trim());toast('已保存')}
 $('apikey').value=localStorage.getItem('sa_key')||'';
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function toggleSidebar(){$('sidebar').classList.toggle('open')}
 
 async function api(path,method='GET',body){
   const h={'Content-Type':'application/json'};const k=key();if(k)h['X-API-Key']=k;
@@ -148,19 +176,24 @@ async function api(path,method='GET',body){
   return{status:r.status,data:d};
 }
 const spin='<span class="spin"></span>';
+function setBtn(btn,on,txt){btn.disabled=on;btn.innerHTML=on?spin+txt:txt}
+
+// 通用输入框（替代 prompt，兼容移动端）
+let askCb=null;
+function ask(title,def,cb){$('askTitle').textContent=title;$('askInput').value=def||'';askCb=cb;$('askModal').classList.add('show');setTimeout(()=>$('askInput').focus(),50)}
+function askOk(){const v=$('askInput').value.trim();$('askModal').classList.remove('show');const cb=askCb;askCb=null;if(cb)cb(v)}
+function askCancel(){$('askModal').classList.remove('show');askCb=null}
+$('askInput').addEventListener('keydown',e=>{if(e.key==='Enter')askOk()})
 
 // 技能
-let skills=[],selected=null;
+let skills=[];
 async function loadSkills(){
   const{data}=await api('/skills');skills=data.skills||[];
-  const el=$('skillList');
-  el.innerHTML=skills.map(s=>`<div class="skill ${s.enabled?'on':''}" onclick="toggleSkill('${s.id}')">
-    <div class="ico">${icon(s.id)}</div>
-    <div><div class="t">${esc(s.name)}</div><div class="d">${esc(s.category)}</div></div>
-    <div class="sw"></div></div>`).join('');
+  $('skillList').innerHTML=skills.map(s=>`<div class="skill ${s.enabled?'on':''}" onclick="toggleSkill('${s.id}')">
+    <div class="ico">${icon(s.id)}</div><div><div class="t">${esc(s.name)}</div><div class="d">${esc(s.category)}</div></div><div class="sw"></div></div>`).join('');
 }
 function icon(id){return ({code:'💻',design:'🎨',video:'🎬',image_gen:'🖼️',video_gen:'🎞️',search:'🔍',file:'📄',sysops:'🖥️',toolforge:'🔧',chat:'💬'})[id]||'✨'}
-function toggleSkill(id){const s=skills.find(x=>x.id===id);s.enabled=!s.enabled;loadSkills();selected=s.enabled?id:(selected===id?null:selected);$('selSkill').textContent=s.enabled?('已选:'+s.name):'未选技能'}
+function toggleSkill(id){const s=skills.find(x=>x.id===id);s.enabled=!s.enabled;loadSkills()}
 
 // 聊天
 function addMsg(role,text,html){
@@ -172,65 +205,57 @@ function addMsg(role,text,html){
 async function chat(){
   const m=$('chatMsg').value.trim();if(!m)return;
   addMsg('me',m);$('chatMsg').value='';
-  const btn=$('chatBtn');btn.disabled=true;btn.innerHTML=spin+'…';
+  const btn=$('chatBtn');setBtn(btn,true,'…');
   const{status,data}=await api('/chat','POST',{message:m});
-  btn.disabled=false;btn.textContent='发送';
+  setBtn(btn,false,'发送');
   addMsg('ai',status===200?data.reply:'❌ '+(data.error||data.raw||status));
 }
-$('chatMsg').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();chat()}});
+$('chatMsg').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();chat()}})
 
-// 图片（多候选画布 + 择优）
+// 图片
 async function genImage(){
-  const p=prompt('🎨 输入图片描述：','一只卡通猫在雪地里打滚，电影感光影');
-  if(!p)return;
-  const d=addMsg('me','🎨 生成图片：'+p);
-  const h=addMsg('ai','',spin+' 生成多套候选（约 20-40 秒）…');
-  const{status,data}=await api('/image','POST',{prompt:p,count:3});
-  if(status===200&&data.urls){
-    h.querySelector('.bub').innerHTML=`<b>多套候选（点击「选用」择优）：</b><div class="canvas"><div class="grid">${data.urls.map((u,i)=>`<div class="cell" id="img${i}"><img src="${u}"><button class="btn ok sm pick" onclick="pickImg(${i})">选用 ${i+1}</button></div>`).join('')}</div></div>`;
-  }else{h.querySelector('.bub').textContent='❌ '+(data.error||data.raw||status)}
+  ask('🎨 输入图片描述','一只卡通猫在雪地里打滚，电影感光影',async p=>{
+    if(!p)return;
+    addMsg('me','🎨 生成图片：'+p);
+    const h=addMsg('ai','',spin+' 生成多套候选…');
+    const{status,data}=await api('/image','POST',{prompt:p,count:3});
+    if(status===200&&data.urls){
+      h.querySelector('.bub').innerHTML=`<b>多套候选（点击选用择优）：</b><div class="canvas"><div class="grid">${data.urls.map((u,i)=>`<div class="cell" id="img${i}"><img src="${u}"><button class="btn ok sm pick" onclick="pickImg(${i})">选用 ${i+1}</button></div>`).join('')}</div></div>`;
+    }else{h.querySelector('.bub').textContent='❌ '+(data.error||data.raw||status)}
+  });
 }
-function pickImg(i){
-  document.querySelectorAll('.grid .cell').forEach(c=>c.classList.remove('picked'));
-  const c=document.getElementById('img'+i);c.classList.add('picked');
-  toast('已选用第 '+(i+1)+' 张（人工择优）');
-}
+function pickImg(i){document.querySelectorAll('.grid .cell').forEach(c=>c.classList.remove('picked'));const c=document.getElementById('img'+i);c.classList.add('picked');toast('已选用第 '+(i+1)+' 张')}
 
-// 视频（剧本 + 成片画布）
+// 视频
 async function genVideo(){
-  const p=prompt('🎬 输入视频描述：','无人机航拍海岸线，海浪拍打礁石，日落');
-  if(!p)return;
-  addMsg('me','🎬 生成视频：'+p);
-  const h=addMsg('ai','',spin+' 生成中（约 1-3 分钟，请耐心等待）…');
-  const{status,data}=await api('/video','POST',{prompt:p});
-  if(status===200&&data.url){
-    h.querySelector('.bub').innerHTML=`<div class="tag">剧本/分镜已生成</div><div class="canvas"><video controls src="${data.url}"></video></div>`;
-  }else{h.querySelector('.bub').textContent='❌ '+(data.error||data.raw||status)}
+  ask('🎬 输入视频描述','无人机航拍海岸线，海浪拍打礁石，日落',async p=>{
+    if(!p)return;
+    addMsg('me','🎬 生成视频：'+p);
+    const h=addMsg('ai','',spin+' 生成中（1-3 分钟）…');
+    const{status,data}=await api('/video','POST',{prompt:p});
+    if(status===200&&data.url){h.querySelector('.bub').innerHTML=`<div class="canvas"><video controls src="${data.url}"></video></div>`}
+    else{h.querySelector('.bub').textContent='❌ '+(data.error||status)}
+  });
 }
 
-// 打斗视频
-async function genFight(){
-  const style=prompt('🥊 打斗风格：street(街头) / martial(武术) / military(军警)','martial');
-  if(!style)return;
-  const desc=prompt('打斗描述：','两名武术高手在擂台上切磋');
-  addMsg('me','🥊 生成打斗视频（'+style+'）：'+desc);
-  const h=addMsg('ai','',spin+' 生成中（约 1-3 分钟）…');
-  const{status,data}=await api('/video/fight','POST',{style,description:desc});
-  if(status===200&&data.url){
-    h.querySelector('.bub').innerHTML=`<div class="canvas"><video controls src="${data.url}"></video></div><div class="muted">${esc(data.prompt||'')}</div>`;
-  }else{h.querySelector('.bub').textContent='❌ '+(data.error||status)}
-}
-
-// 去水印
-async function dewatermark(){
-  const url=prompt('🧽 输入素材 URL（仅限自有生成素材）','');
-  if(!url)return;
-  addMsg('me','🧽 去水印');
-  const h=addMsg('ai','',spin+' 处理中…');
-  const{status,data}=await api('/video/dewatermark','POST',{url});
-  if(status===200&&data.url){
-    h.querySelector('.bub').innerHTML=`<div class="canvas"><video controls src="${data.url}"></video></div>`;
-  }else{h.querySelector('.bub').textContent='❌ '+(data.error||status)}
+// 多场景成片（打斗作为片段）
+function composeFilm(){$('filmModal').classList.add('show')}
+function closeFilm(){$('filmModal').classList.remove('show')}
+async function submitFilm(){
+  const raw=$('filmScenes').value.trim();if(!raw)return toast('请输入场景');
+  const style=$('filmStyle').value, grade=$('filmGrade').value;
+  const scenes=raw.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+    if(l.startsWith('打斗:'))return{type:'fight',style,description:l.replace(/^打斗[:：]/,'')};
+    return{type:'normal',description:l};
+  });
+  closeFilm();
+  addMsg('me','🎞️ 多场景成片（'+scenes.length+' 个片段，打斗风格：'+style+'）');
+  const h=addMsg('ai','',spin+' 逐片段生成+合成（约 3-8 分钟）…');
+  const btn=$('filmBtn');setBtn(btn,true,'生成中');
+  const{status,data}=await api('/video/compose','POST',{scenes,grade});
+  setBtn(btn,false,'生成成片');
+  if(status===200&&data.url){h.querySelector('.bub').innerHTML=`<div class="canvas"><video controls src="${data.url}"></video></div>`}
+  else{h.querySelector('.bub').textContent='❌ '+(data.error||status)}
 }
 
 // 文件
@@ -247,28 +272,29 @@ async function uploadFile(f){
 
 // 任务
 async function runTask(){
-  const t=prompt('🚀 输入任务描述：','用Python写一个判断闰年的命令行工具');
-  if(!t)return;
-  addMsg('me','🚀 任务：'+t);
-  const h=addMsg('ai','',spin+' 执行中（可能较久）…');
-  const{status,data}=await api('/run','POST',{text:t,auto_approve:true});
-  h.querySelector('.bub').textContent=status===200?('✅ 完成：state='+data.result?.state+'\n'+JSON.stringify(data.result?.artifacts||{},null,2)):('❌ '+(data.error||status));
+  ask('🚀 输入任务描述','用Python写一个判断闰年的命令行工具',async t=>{
+    if(!t)return;
+    addMsg('me','🚀 任务：'+t);
+    const h=addMsg('ai','',spin+' 执行中…');
+    const{status,data}=await api('/run','POST',{text:t,auto_approve:true});
+    h.querySelector('.bub').textContent=status===200?('✅ 完成：state='+data.result?.state):('❌ '+(data.error||status));
+  });
 }
 
-// 技能弹窗
-function openAddSkill(){$('addSkillModal').classList.add('show')}
+// 技能
+function openAddSkill(){$('addSkillModal').classList.add('show');toggleSidebar()}
 function closeAddSkill(){$('addSkillModal').classList.remove('show')}
 async function addSkill(){
   const name=$('skName').value.trim();if(!name)return toast('请输入名称');
   const{data}=await api('/skills','POST',{action:'add',name,description:$('skDesc').value.trim(),forge:$('skForge').checked});
   closeAddSkill();$('skName').value='';$('skDesc').value='';
-  if(data.forge_error)toast('已添加，但部署失败：'+data.forge_error);else toast('技能已添加');
+  toast(data.forge_error?'已添加(部署失败):'+data.forge_error:'技能已添加');
   loadSkills();
 }
 
 async function loadAudit(){
   const{data}=await api('/audit?limit=10');const ev=data.events||[];
-  const h=addMsg('ai','📋 最近审计：\n'+ev.map(e=>`${e.ts.slice(11,19)} [${e.level}] ${e.action}→${e.result}`).join('\n')||'无');
+  addMsg('ai','📋 最近审计：\n'+ev.map(e=>`${e.ts.slice(11,19)} [${e.level}] ${e.action}→${e.result}`).join('\n')||'无');
 }
 
 async function health(){try{const{data}=await api('/health');$('dot').classList.add('ok');$('provider').textContent=(data.provider||'')+' / '+(data.model||'')}catch{$('dot').classList.remove('ok')}}
