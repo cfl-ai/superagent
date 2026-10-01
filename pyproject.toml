@@ -13,7 +13,11 @@ authors = [{ name = "SuperAgent" }]
 dependencies = []
 
 [project.optional-dependencies]
-llm = []
+# 文件解析（/upload 支持 xlsx/docx）
+file = ["openpyxl", "python-docx"]
+# GUI 桌面接管（截屏/键鼠）
+gui = ["Pillow", "pyautogui"]
+all = ["openpyxl", "python-docx", "Pillow", "pyautogui"]
 
 [project.scripts]
 superagent = "superagent.cli:main"

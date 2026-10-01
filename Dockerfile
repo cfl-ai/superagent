@@ -7,7 +7,7 @@ COPY superagent ./superagent
 COPY config ./config
 COPY pyproject.toml README.md LICENSE ./
 
-RUN pip install --no-cache-dir . && rm -rf /root/.cache
+RUN pip install --no-cache-dir ".[file]" && rm -rf /root/.cache
 
 EXPOSE 8000
 

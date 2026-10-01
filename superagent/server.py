@@ -46,6 +46,19 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 token = auth[7:]
             return token == api_key
 
+        def _serve_index(self) -> None:
+            """服务 Web 控制台静态页。"""
+            from pathlib import Path
+            index = Path(__file__).resolve().parent / "web" / "index.html"
+            if not index.exists():
+                return self._send({"error": "web ui not found"}, status=404)
+            body = index.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
         def _send(self, payload: dict, status: int = 200) -> None:
             body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
             self.send_response(status)
@@ -82,6 +95,8 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                     "model": getattr(runtime.llm, "config", None) and runtime.llm.config.model,
                     "role": runtime.config.security.default_role,
                 })
+            if path in ("/", "/index.html"):
+                return self._serve_index()
             if not self._authorize():
                 return self._send({"error": "unauthorized"}, status=401)
             if path == "/ping":

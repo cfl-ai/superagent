@@ -66,12 +66,16 @@ python -m unittest discover -s tests -v   # 19 个用例
 | `ping` | 检测 LLM 提供商连通性与密钥有效性 |
 | `serve [--host H] [--port P] [--auto-approve]` | 启动生产 HTTP 服务 |
 
-### HTTP 服务
+### HTTP 服务 & Web 控制台
 
-`python -m superagent serve` 启动生产服务：
+`python -m superagent serve` 启动生产服务，浏览器访问 `/` 打开 **Web 控制台**（桌面版/云端多设备共用）：
+
+- **桌面版**：双击 `start-desktop.bat`（或 `bash start-desktop.sh`），自动起服务并打开浏览器 `http://localhost:8000`
+- **云端版**：任意设备浏览器访问 `http://<服务器IP>:8000`，右上角填 API Key 即可
 
 | 端点 | 说明 |
 |------|------|
+| `GET /` | Web 控制台（聊天/任务/上传/审批/审计） |
 | `GET /health` | 健康检查（免鉴权） |
 | `GET /ping` | LLM 连通性 |
 | `POST /run` | 执行任务 `{text, auto_approve?}` |
