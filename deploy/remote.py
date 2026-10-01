@@ -102,11 +102,14 @@ def deploy() -> int:
     api_key = os.environ.get("SA_API_KEY", "")
     lf_sk = os.environ.get("SA_LANGFUSE_SK", "")
     lf_pk = os.environ.get("SA_LANGFUSE_PK", "")
+    lf_url = os.environ.get("SA_LANGFUSE_BASE_URL", "")
     env_content = f"SUPERAGENT_LLM_PROVIDER={provider}\nDEEPSEEK_API_KEY={llm_key}\n"
     if api_key:
         env_content += f"SUPERAGENT_API_KEY={api_key}\n"
     if lf_pk and lf_sk:
         env_content += f"LANGFUSE_PUBLIC_KEY={lf_pk}\nLANGFUSE_SECRET_KEY={lf_sk}\n"
+        if lf_url:
+            env_content += f"LANGFUSE_BASE_URL={lf_url}\n"
     code, out, err = run(c, f"cat > {APP_DIR}/.env <<'EOF'\n{env_content}EOF\nchmod 600 {APP_DIR}/.env")
     if code != 0:
         print(err.strip()); return 1

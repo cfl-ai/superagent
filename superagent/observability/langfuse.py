@@ -2,7 +2,12 @@
 
 通过 Langfuse 公开 ingestion REST API 上报 trace/generation，零 SDK 依赖。
 认证：Basic(pk:sk)。配置：LANGFUSE_PUBLIC_KEY + LANGFUSE_SECRET_KEY。
-默认 host=https://cloud.langfuse.com。缺少任一密钥则自动禁用（不阻塞主流程）。
+host 读取顺序：LANGFUSE_BASE_URL → LANGFUSE_HOST → https://cloud.langfuse.com。
+缺少任一密钥则自动禁用（不阻塞主流程）。
+
+注意：当前使用 /api/public/ingestion（Langfuse v3 事件 API），Langfuse Cloud 将于
+2026-11-16 停用该端点（仅保留 score）。届时需迁移到 POST /api/public/otel/v1/traces
+（OpenTelemetry OTLP/JSON）。见 https://langfuse.com/docs/api-and-data-platform/features/observations-api
 """
 from __future__ import annotations
 
@@ -26,7 +31,11 @@ class LangfuseClient:
         import os
         self.public_key = public_key or os.environ.get("LANGFUSE_PUBLIC_KEY", "")
         self.secret_key = secret_key or os.environ.get("LANGFUSE_SECRET_KEY", "")
-        self.host = (host or os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com")).rstrip("/")
+        self.host = (
+            host
+            or os.environ.get("LANGFUSE_BASE_URL")
+            or os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com")
+        ).rstrip("/")
         self.enabled = bool(self.public_key and self.secret_key)
         self._lock = threading.Lock()
 
