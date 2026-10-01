@@ -111,6 +111,8 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
                 return self._send({"skills": runtime.skills.list()})
             if path == "/orders":
                 return self._orders()
+            if path == "/reference":
+                return self._reference()
             if path.startswith("/media/"):
                 return self._serve_media(path)
             return self._send({"error": "not found"}, status=404)
@@ -298,6 +300,27 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
             try:
                 orders = NetworkLayer().search_orders(category, max_results=10)
                 return self._send({"ok": True, "orders": orders})
+            except Exception as exc:  # noqa: BLE001
+                return self._send({"ok": False, "error": str(exc)}, status=502)
+
+        def _reference(self):
+            """参考检索二次原创：{topic} -> {references, prompt}（记录来源，不搬运版权素材）"""
+            qs = parse_qs(urlparse(self.path).query)
+            topic = qs.get("topic", [""])[0].strip()
+            if not topic:
+                return self._send({"error": "topic 不能为空"}, status=400)
+            from superagent.layers.layer2_network import NetworkLayer
+            try:
+                refs = NetworkLayer().search(topic, max_results=6)
+                # 记录来源（溯源）
+                for r in refs:
+                    runtime.sources.add("url", r["title"], r["url"], cited_at="参考检索")
+                # 生成二次原创提示词（引用参考但不搬运）
+                prompt = (
+                    f"参考以下素材的主题与手法（不复制其内容）：{'；'.join(r['title'] for r in refs[:3])}。"
+                    f"围绕「{topic}」进行二次原创创作。"
+                )
+                return self._send({"ok": True, "references": refs, "prompt": prompt})
             except Exception as exc:  # noqa: BLE001
                 return self._send({"ok": False, "error": str(exc)}, status=502)
 
