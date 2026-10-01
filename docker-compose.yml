@@ -1,0 +1,16 @@
+services:
+  superagent:
+    build: .
+    container_name: superagent
+    ports:
+      - "127.0.0.1:8000:8000"   # 仅本机回环，建议经 nginx 反代对外开放
+    env_file:
+      - .env
+    environment:
+      - SUPERAGENT_LLM_PROVIDER=${SUPERAGENT_LLM_PROVIDER:-deepseek}
+    volumes:
+      - ./data:/app/data
+      - ./projects:/app/projects
+    restart: unless-stopped
+    mem_limit: 1g
+    cpus: 1.0

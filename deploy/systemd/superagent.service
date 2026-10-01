@@ -1,0 +1,20 @@
+[Unit]
+Description=SuperAgent 生产服务
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/superagent
+EnvironmentFile=/opt/superagent/.env
+ExecStart=/opt/superagent/venv/bin/python -m superagent serve --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=3
+# 最小权限运行（非 root）
+User=superagent
+Group=superagent
+# 2 核服务器：限制资源，避免影响现有项目
+CPUQuota=100%
+MemoryMax=1G
+
+[Install]
+WantedBy=multi-user.target

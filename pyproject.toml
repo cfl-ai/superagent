@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "superagent"
+version = "0.1.0"
+description = "生产/企业级自主 AI Agent 框架：权限分级、审计回滚、资料溯源、HITL 审批、可插拔 LLM"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "SuperAgent" }]
+dependencies = []
+
+[project.optional-dependencies]
+llm = []
+
+[project.scripts]
+superagent = "superagent.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["superagent*"]

@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# 运行时产物
+data/
+projects/
+*.db
+*.zip
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+
+# 环境
+.venv/
+venv/
+.env

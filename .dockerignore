@@ -1,0 +1,29 @@
+# 构建上下文排除项：防止密钥/虚拟环境/运行时产物进入镜像
+.env
+.env.*
+!.env.example
+
+# 虚拟环境与缓存
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 运行时产物
+data/
+projects/
+01_需求文档/
+*.db
+*.zip
+*.log
+
+# 测试与 git
+tests/
+.git/
+.gitignore

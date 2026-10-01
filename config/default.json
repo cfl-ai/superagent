@@ -1,0 +1,45 @@
+{
+  "llm": {
+    "provider": "auto",
+    "base_url": "https://api.openai.com/v1",
+    "api_key_env": "SUPERAGENT_LLM_API_KEY",
+    "model": "gpt-4o-mini",
+    "timeout_s": 60.0,
+    "temperature": 0.2
+  },
+  "security": {
+    "default_role": "operator",
+    "audit_db_path": "data/audit.db",
+    "snapshot_dir": "data/snapshots",
+    "whitelist_prefixes": [
+      "read.", "search.", "venv.pip.install.", "venv.npm.install.",
+      "font.install.", "template.install.", "cache.clean.",
+      "production.", "tool.run."
+    ],
+    "approval_prefixes": [
+      "system.install.", "software.install.", "file.delete.",
+      "agent.deploy.", "delivery.submit.", "registry.modify.",
+      "system.clean.", "driver.", "tool.create.high_risk."
+    ],
+    "blocked_prefixes": [
+      "system.delete.core.", "registry.write.", "driver.modify.",
+      "watermark.remove.third_party."
+    ]
+  },
+  "hitl": {
+    "timeout_s": 600.0,
+    "storage_path": "data/approvals.jsonl"
+  },
+  "sourcing": {
+    "manifest_path": "01_需求文档/参考资料清单.md"
+  },
+  "observability": {
+    "log_dir": "data/logs",
+    "heartbeat_interval_s": 5.0,
+    "alert_enabled": true
+  },
+  "quality": {
+    "pass_threshold": 7.0,
+    "max_iterations": 3
+  }
+}
