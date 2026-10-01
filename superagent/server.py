@@ -87,6 +87,10 @@ def make_handler(runtime: Runtime, orchestrator: Orchestrator, auto_approve: boo
         # ---- GET ----
         def do_GET(self):
             path = urlparse(self.path).path
+            if path == "/favicon.ico":
+                self.send_response(204)
+                self.end_headers()
+                return
             if path == "/health":
                 return self._send({
                     "status": "ok",

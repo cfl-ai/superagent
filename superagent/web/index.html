@@ -100,8 +100,6 @@
     <button class="btn ghost sm" onclick="toggleSidebar()">☰</button>
     <span class="dot" id="dot"></span><span class="stat" id="provider">连接中…</span>
     <span class="spacer"></span>
-    <input class="key" type="password" id="apikey" placeholder="API Key">
-    <button class="btn ghost sm" onclick="saveKey()">保存</button>
     <button class="btn ghost sm" onclick="loadAudit()">审计</button>
   </div>
 
@@ -161,10 +159,8 @@
 
 <script>
 const $=id=>document.getElementById(id);
-const key=()=>$('apikey').value||localStorage.getItem('sa_key')||'';
+const key=()=>localStorage.getItem('sa_key')||'';
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
-function saveKey(){localStorage.setItem('sa_key',$('apikey').value.trim());toast('已保存')}
-$('apikey').value=localStorage.getItem('sa_key')||'';
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 function toggleSidebar(){$('sidebar').classList.toggle('open')}
 
